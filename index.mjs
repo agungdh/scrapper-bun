@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { chromium } from 'playwright';
-import { saveScrape } from './db/scrape.js';
+import { saveScrape, getLatestScrape } from './db/scrape.js';
 
 const MANGA_URL = process.env.URL_THE_BULLY_IN_CHARGE;
 const INTERVAL_MINUTES = parseInt(process.env.INTERVAL_MINUTES || '10', 10);
@@ -53,6 +53,34 @@ async function main() {
     process.exit(1);
   }
 
+  const PORT = parseInt(process.env.PORT || '3000', 10);
+
+  Bun.serve({
+    port: PORT,
+    async fetch(request) {
+      const url = new URL(request.url);
+      const method = request.method;
+
+      try {
+        if (method === 'GET' && url.pathname === '/health') {
+          return Response.json({ status: 'ok' });
+        }
+
+        if (method === 'GET' && url.pathname === '/api/scrape/the-bully-in-charge') {
+          const data = await getLatestScrape('the-bully-in-charge');
+          if (!data) return Response.json({ message: 'not found' }, { status: 404 });
+          return Response.json(data);
+        }
+
+        return Response.json({ message: 'not found' }, { status: 404 });
+      } catch (err) {
+        console.error(err);
+        return Response.json({ message: 'internal server error' }, { status: 500 });
+      }
+    },
+  });
+
+  console.log(`API server running on http://localhost:${PORT}`);
   console.log(`Scraping every ${INTERVAL_MINUTES} minutes...\n`);
 
   const run = async () => {

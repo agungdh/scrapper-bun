@@ -11,7 +11,7 @@ export function saveScrape(source, data) {
   db.insert(table).values(data).run();
 }
 
-export function getLatestScrape(source) {
+export async function getLatestScrape(source) {
   const table = tables[source];
-  return db.select().from(table).orderBy(desc(table.id)).limit(1).get() || null;
+  return await db.select().from(table).orderBy(desc(table.id)).limit(1).get() || null;
 }
