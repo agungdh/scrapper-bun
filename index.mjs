@@ -31,10 +31,10 @@ async function scrapeLatestChapter() {
       chapter: chapterNum,
       date: date?.trim(),
       url: fullUrl,
-      scrapedAt: new Date().toISOString(),
+      scraped_at: new Date().toISOString(),
     };
 
-    console.log(JSON.stringify(result, null, 2));
+    console.log(JSON.stringify(result));
     return result;
   } finally {
     await browser.close();
