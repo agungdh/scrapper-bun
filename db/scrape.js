@@ -15,20 +15,23 @@ export async function saveScrape(source, data) {
 }
 
 export async function saveEpisodeWithFiles(episode, files) {
-  const insertedId = await saveScrape('one-piece', episode)
-  if (insertedId && files?.length) {
-    const values = files.map(f => ({
-      episode_id: insertedId,
-      file_id: f.id,
-      name: f.name,
-      size: f.size,
-      link: f.link,
-      mimetype: f.mimetype,
-      thumbnail: f.thumbnail,
-    }))
-    await db.insert(one_piece_files).values(values).run()
-  }
-  return insertedId
+  return await db.transaction(async (tx) => {
+    await tx.insert(one_piece).values(episode).run();
+    const row = await tx.select({ id: max(one_piece.id) }).from(one_piece).get()
+    if (row?.id && files?.length) {
+      const values = files.map(f => ({
+        episode_id: row.id,
+        file_id: f.id,
+        name: f.name,
+        size: f.size,
+        link: f.link,
+        mimetype: f.mimetype,
+        thumbnail: f.thumbnail,
+      }))
+      await tx.insert(one_piece_files).values(values).run()
+    }
+    return row?.id
+  })
 }
 
 export async function getLatestScrape(source) {
@@ -43,20 +46,6 @@ export async function getLatestOnePieceWithFiles() {
   return { ...episode, files }
 }
 
-export function saveScrapeFiles(episodeId, files) {
-  if (!files?.length) return
-  const values = files.map(f => ({
-    episode_id: episodeId,
-    file_id: f.id,
-    name: f.name,
-    size: f.size,
-    link: f.link,
-    mimetype: f.mimetype,
-    thumbnail: f.thumbnail,
-  }))
-  db.insert(one_piece_files).values(values).run()
-}
-
 export async function deleteOldScrapes(source) {
   const table = tables[source];
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -69,18 +58,26 @@ export async function deleteOldScrapes(source) {
 export async function deleteAllOldScrapes() {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   let total = 0;
-  for (const [name, table] of Object.entries(tables)) {
-    if (table === one_piece) {
-      const old = await db.select({ id: one_piece.id }).from(one_piece).where(lt(one_piece.scraped_at, cutoff)).all()
-      if (old.length) {
-        const ids = old.map(r => r.id)
-        await db.delete(one_piece_files).where(lt(one_piece_files.episode_id, Math.max(...ids))).run()
+
+  // one_piece: transaction delete parent + child
+  const oldIds = (await db.select({ id: one_piece.id }).from(one_piece).where(lt(one_piece.scraped_at, cutoff)).all()).map(r => r.id)
+  if (oldIds.length) {
+    await db.transaction(async (tx) => {
+      for (const id of oldIds) {
+        await tx.delete(one_piece_files).where(eq(one_piece_files.episode_id, id)).run()
       }
-    }
-    const result = await db.delete(table).where(lt(table.scraped_at, cutoff)).run();
-    const count = result.rowsAffected ?? 0;
-    if (count > 0) total += count;
+      const result = await tx.delete(one_piece).where(lt(one_piece.scraped_at, cutoff)).run()
+      total += result.rowsAffected ?? 0
+    })
   }
-  console.log(`[cleanup] deleted ${total} old rows across ${Object.keys(tables).length} tables`);
+
+  // other tables
+  for (const [name, table] of Object.entries(tables)) {
+    if (table === one_piece) continue
+    const result = await db.delete(table).where(lt(table.scraped_at, cutoff)).run();
+    total += result.rowsAffected ?? 0;
+  }
+
+  console.log(`[cleanup] deleted ${total} old rows across ${Object.keys(tables).length + 1} tables`);
   return total;
 }
