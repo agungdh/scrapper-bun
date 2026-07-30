@@ -1,11 +1,11 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "e491df3b-7229-4fcd-8608-11e7ea8b64f6",
+  "id": "f91cdf4a-59e2-44d2-a997-0cedac278301",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "scrapes": {
-      "name": "scrapes",
+    "the_bully_in_charge": {
+      "name": "the_bully_in_charge",
       "columns": {
         "id": {
           "name": "id",
@@ -13,13 +13,6 @@
           "primaryKey": true,
           "notNull": true,
           "autoincrement": true
-        },
-        "source": {
-          "name": "source",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
         },
         "chapter": {
           "name": "chapter",

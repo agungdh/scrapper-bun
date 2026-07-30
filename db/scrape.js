@@ -1,12 +1,17 @@
-import { desc, eq } from 'drizzle-orm';
+import { desc } from 'drizzle-orm';
 import { db } from './index.js';
-import { scrapes } from './schema.js';
+import { the_bully_in_charge } from './schema.js';
+
+const tables = {
+  'the-bully-in-charge': the_bully_in_charge,
+};
 
 export function saveScrape(source, data) {
-  db.insert(scrapes).values({ source, ...data }).run();
+  const table = tables[source];
+  db.insert(table).values(data).run();
 }
 
 export function getLatestScrape(source) {
-  const rows = db.select().from(scrapes).where(eq(scrapes.source, source)).orderBy(desc(scrapes.id)).limit(1).get();
-  return rows || null;
+  const table = tables[source];
+  return db.select().from(table).orderBy(desc(table.id)).limit(1).get() || null;
 }

@@ -1,10 +1,11 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
-export const scrapes = sqliteTable('scrapes', {
+const defineTable = (name) => sqliteTable(name, {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  source: text('source').notNull(),
   chapter: integer('chapter').notNull(),
   date: text('date').notNull(),
   url: text('url').notNull(),
   scraped_at: text('scraped_at').notNull(),
 });
+
+export const the_bully_in_charge = defineTable('the_bully_in_charge');

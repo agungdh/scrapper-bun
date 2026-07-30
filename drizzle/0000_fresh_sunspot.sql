@@ -1,6 +1,5 @@
-CREATE TABLE `scrapes` (
+CREATE TABLE `the_bully_in_charge` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`source` text NOT NULL,
 	`chapter` integer NOT NULL,
 	`date` text NOT NULL,
 	`url` text NOT NULL,
