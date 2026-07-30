@@ -1,4 +1,5 @@
 import { Database } from 'bun:sqlite';
+import { drizzle } from 'drizzle-orm/bun-sqlite';
 import { existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 
@@ -12,4 +13,5 @@ if (!existsSync(dir)) {
 const sqlite = new Database(DB_PATH);
 sqlite.exec('PRAGMA journal_mode = WAL');
 
+export const db = drizzle(sqlite);
 export default sqlite;

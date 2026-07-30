@@ -5,6 +5,7 @@
   "main": "index.mjs",
   "scripts": {
     "start": "bun run index.mjs",
+    "migrate": "bun run scripts/migrate.mjs",
     "build": "bun build --compile --target=bun --external playwright --external playwright-core ./index.mjs --outfile scrapper"
   },
   "keywords": [],
@@ -13,10 +14,13 @@
   "type": "commonjs",
   "devDependencies": {
     "@playwright/test": "^1.62.0",
-    "@types/node": "^26.1.2"
+    "@types/node": "^26.1.2",
+    "drizzle-kit": "^0.31.10"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.4",
     "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
     "playwright": "^1.62.0"
   }
 }
