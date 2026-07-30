@@ -1,6 +1,7 @@
 
 .idea/
 .env
+/scrapper
 
 # Playwright
 node_modules/

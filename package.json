@@ -2,8 +2,11 @@
   "name": "scrapper-bun",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {},
+  "main": "index.mjs",
+  "scripts": {
+    "start": "bun run index.mjs",
+    "build": "bun build --compile --target=bun --external playwright --external playwright-core ./index.mjs --outfile scrapper"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
