@@ -17,8 +17,18 @@ const defineAnimeTable = (name) => sqliteTable(name, {
   date: text('date').notNull(),
   url: text('url').notNull(),
   download_url: text('download_url').notNull(),
-  files: text('files'),
   scraped_at: text('scraped_at').notNull(),
 });
 
 export const one_piece = defineAnimeTable('one_piece');
+
+export const one_piece_files = sqliteTable('one_piece_files', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  episode_id: integer('episode_id').notNull(),
+  file_id: text('file_id').notNull(),
+  name: text('name').notNull(),
+  size: integer('size').notNull(),
+  link: text('link').notNull(),
+  mimetype: text('mimetype'),
+  thumbnail: text('thumbnail'),
+});

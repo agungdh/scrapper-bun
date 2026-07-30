@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { chromium } from 'playwright'
-import { saveScrape, getLatestScrape, deleteAllOldScrapes } from './db/scrape.js'
+import { saveScrape, saveEpisodeWithFiles, getLatestScrape, getLatestOnePieceWithFiles, deleteAllOldScrapes } from './db/scrape.js'
 
 const MANGA_URL = process.env.URL_THE_BULLY_IN_CHARGE
 const ONE_PIECE_URL = process.env.URL_ONE_PIECE
@@ -85,19 +85,24 @@ async function scrapeLatestOnePiece() {
     let files = []
     const gofileId = downloadUrl?.match(/gofile\.io\/d\/(\w+)/)?.[1]
     if (gofileId) {
-      const apiPromise = page.waitForResponse(r => r.url().startsWith('https://api.gofile.io/contents/') && r.status() === 200)
-      await page.goto(downloadUrl, { waitUntil: 'networkidle', timeout: 30000 })
-      const apiRes = await apiPromise
-      const apiJson = await apiRes.json()
-      if (apiJson.status === 'ok' && apiJson.data?.children) {
-        files = Object.values(apiJson.data.children).map(f => ({
-          id: f.id,
-          name: f.name,
-          size: f.size,
-          link: f.link,
-          mimetype: f.mimetype,
-          thumbnail: f.thumbnail,
-        }))
+      const goPage = await context.newPage()
+      try {
+        const apiPromise = goPage.waitForResponse(r => r.url().startsWith('https://api.gofile.io/contents/') && r.status() === 200)
+        await goPage.goto(downloadUrl, { waitUntil: 'networkidle', timeout: 30000 })
+        const apiRes = await apiPromise
+        const apiJson = await apiRes.json()
+        if (apiJson.status === 'ok' && apiJson.data?.children) {
+          files = Object.values(apiJson.data.children).map(f => ({
+            id: f.id,
+            name: f.name,
+            size: f.size,
+            link: f.link,
+            mimetype: f.mimetype,
+            thumbnail: f.thumbnail,
+          }))
+        }
+      } finally {
+        await goPage.close()
       }
     }
 
@@ -107,15 +112,14 @@ async function scrapeLatestOnePiece() {
       date,
       url: episodeUrl,
       download_url: downloadUrl || '',
-      files: files.length > 0 ? JSON.stringify(files) : null,
       scraped_at: new Date().toISOString(),
     }
 
     console.log(JSON.stringify(result))
 
-    saveScrape('one-piece', result)
+    const insertedId = await saveEpisodeWithFiles(result, files)
 
-    return result
+    return { ...result, id: insertedId, files }
   } finally {
     await browser.close()
   }
@@ -132,7 +136,7 @@ app.get('/api/scrape/the-bully-in-charge', async (c) => {
 })
 
 app.get('/api/scrape/one-piece', async (c) => {
-  const data = await getLatestScrape('one-piece')
+  const data = await getLatestOnePieceWithFiles()
   if (!data) return c.json({ message: 'not found' }, 404)
   return c.json(data)
 })
@@ -192,7 +196,7 @@ if (SCRAP_ON_START) {
 
 const cleanup = async () => {
   try {
-    deleteAllOldScrapes()
+    await deleteAllOldScrapes()
   } catch (err) {
     console.error('[cleanup] Error:', err.message)
   }
