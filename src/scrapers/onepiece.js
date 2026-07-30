@@ -1,13 +1,24 @@
 import { ONE_PIECE_URL } from '../config.js'
 import { saveEpisodeWithFiles } from '../db/queries.js'
-import { createBrowser } from './browser.js'
+import { getPage } from './browser.js'
+
+async function withRetry(fn, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn()
+    } catch (err) {
+      if (i === retries - 1) throw err
+      console.log(`[onepiece] retry ${i + 1}/${retries}: ${err.message}`)
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)))
+    }
+  }
+}
 
 export async function scrapeLatestOnePiece() {
-  const { browser, context } = await createBrowser()
-  const page = await context.newPage()
+  const { page, context } = await getPage()
 
   try {
-    await page.goto(ONE_PIECE_URL, { waitUntil: 'load', timeout: 15000 })
+    await withRetry(() => page.goto(ONE_PIECE_URL, { waitUntil: 'load', timeout: 15000 }))
 
     const latestLink = page.locator('a:has(span.epcurlast)').first()
     await latestLink.waitFor({ state: 'visible', timeout: 10000 })
@@ -34,7 +45,7 @@ export async function scrapeLatestOnePiece() {
     let files = []
     const gofileId = downloadUrl?.match(/gofile\.io\/d\/(\w+)/)?.[1]
     if (gofileId) {
-      const goPage = await context.newPage()
+      const { page: goPage, context: goCtx } = await getPage()
       try {
         const apiPromise = goPage.waitForResponse(r => r.url().startsWith('https://api.gofile.io/contents/') && r.status() === 200)
         await goPage.goto(downloadUrl, { waitUntil: 'networkidle', timeout: 30000 })
@@ -51,7 +62,7 @@ export async function scrapeLatestOnePiece() {
           }))
         }
       } finally {
-        await goPage.close()
+        await goCtx.close()
       }
     }
 
@@ -65,11 +76,9 @@ export async function scrapeLatestOnePiece() {
     }
 
     console.log(JSON.stringify(result))
-
-    const insertedId = await saveEpisodeWithFiles(result, files)
-
-    return { ...result, id: insertedId, files }
+    await saveEpisodeWithFiles(result, files)
+    return result
   } finally {
-    await browser.close()
+    await context.close()
   }
 }

@@ -1,13 +1,24 @@
 import { MANGA_URL } from '../config.js'
 import { saveScrape } from '../db/queries.js'
-import { createBrowser } from './browser.js'
+import { getPage } from './browser.js'
+
+async function withRetry(fn, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn()
+    } catch (err) {
+      if (i === retries - 1) throw err
+      console.log(`[bully] retry ${i + 1}/${retries}: ${err.message}`)
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)))
+    }
+  }
+}
 
 export async function scrapeLatestChapter() {
-  const { browser, context } = await createBrowser()
-  const page = await context.newPage()
+  const { page, context } = await getPage()
 
   try {
-    await page.goto(MANGA_URL, { waitUntil: 'load', timeout: 15000 })
+    await withRetry(() => page.goto(MANGA_URL, { waitUntil: 'load', timeout: 15000 }))
 
     const latestRow = page.locator('table#Daftar_Chapter tbody#daftarChapter tr[data-ch]').first()
     await latestRow.waitFor({ state: 'visible', timeout: 10000 })
@@ -31,11 +42,9 @@ export async function scrapeLatestChapter() {
     }
 
     console.log(JSON.stringify(result))
-
     await saveScrape('the-bully-in-charge', result)
-
     return result
   } finally {
-    await browser.close()
+    await context.close()
   }
 }

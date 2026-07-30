@@ -2,6 +2,7 @@ import { INTERVAL_MINUTES, CLEANUP_INTERVAL_MINUTES, SCRAP_ON_START } from './co
 import { scrapeLatestChapter } from './scrapers/bully.js'
 import { scrapeLatestOnePiece } from './scrapers/onepiece.js'
 import { deleteAllOldScrapes } from './db/queries.js'
+import { closeBrowser } from './scrapers/browser.js'
 
 async function runManga() {
   try {
@@ -23,6 +24,11 @@ async function runAnime() {
   }
 }
 
+async function runAll() {
+  await runManga()
+  await runAnime()
+}
+
 async function cleanup() {
   try {
     await deleteAllOldScrapes()
@@ -32,23 +38,21 @@ async function cleanup() {
 }
 
 export function startScheduler() {
-  const interval = setInterval(runManga, INTERVAL_MINUTES * 60 * 1000)
-  const intervalAnime = setInterval(runAnime, INTERVAL_MINUTES * 60 * 1000)
+  const mainInterval = setInterval(runAll, INTERVAL_MINUTES * 60 * 1000)
   const cleanupInterval = setInterval(cleanup, CLEANUP_INTERVAL_MINUTES * 60 * 1000)
 
   cleanup()
 
   if (SCRAP_ON_START) {
-    runManga()
-    runAnime()
+    runAll()
   } else {
     console.log(`First scrape in ${INTERVAL_MINUTES} minutes...`)
   }
 
-  process.on('SIGINT', () => {
-    clearInterval(interval)
-    clearInterval(intervalAnime)
+  process.on('SIGINT', async () => {
+    clearInterval(mainInterval)
     clearInterval(cleanupInterval)
+    await closeBrowser()
     process.exit(0)
   })
 }
