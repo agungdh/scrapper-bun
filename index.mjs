@@ -3,6 +3,7 @@ import { chromium } from 'playwright';
 
 const MANGA_URL = process.env.URL_THE_BULLY_IN_CHARGE;
 const INTERVAL_MINUTES = parseInt(process.env.INTERVAL_MINUTES || '10', 10);
+const SCRAP_ON_START = process.env.SCRAP_ON_START === 'true';
 
 async function scrapeLatestChapter() {
   const browser = await chromium.launch({ headless: true });
@@ -58,8 +59,18 @@ async function main() {
     }
   };
 
-  await run();
-  setInterval(run, INTERVAL_MINUTES * 60 * 1000);
+  const interval = setInterval(run, INTERVAL_MINUTES * 60 * 1000);
+
+  if (SCRAP_ON_START) {
+    await run();
+  } else {
+    console.log(`First scrape in ${INTERVAL_MINUTES} minutes...`);
+  }
+
+  process.on('SIGINT', () => {
+    clearInterval(interval);
+    process.exit(0);
+  });
 }
 
 main();
