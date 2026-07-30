@@ -1,9 +1,10 @@
 import { desc, lt } from 'drizzle-orm';
 import { db } from './index.js';
-import { the_bully_in_charge } from './schema.js';
+import { the_bully_in_charge, one_piece } from './schema.js';
 
 const tables = {
   'the-bully-in-charge': the_bully_in_charge,
+  'one-piece': one_piece,
 };
 
 export function saveScrape(source, data) {
