@@ -22,6 +22,18 @@ export function deleteOldScrapes(source) {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const result = db.delete(table).where(lt(table.scraped_at, cutoff)).run();
   const count = result.rowsAffected ?? 0;
-  console.log(`[cleanup] Deleted ${count} old rows`);
+  console.log(`[cleanup] ${source}: deleted ${count} old rows`);
   return count;
+}
+
+export function deleteAllOldScrapes() {
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  let total = 0;
+  for (const [name, table] of Object.entries(tables)) {
+    const result = db.delete(table).where(lt(table.scraped_at, cutoff)).run();
+    const count = result.rowsAffected ?? 0;
+    if (count > 0) total += count;
+  }
+  console.log(`[cleanup] deleted ${total} old rows across ${Object.keys(tables).length} tables`);
+  return total;
 }

@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { chromium } from 'playwright'
-import { saveScrape, getLatestScrape, deleteOldScrapes } from './db/scrape.js'
+import { saveScrape, getLatestScrape, deleteAllOldScrapes } from './db/scrape.js'
 
 const MANGA_URL = process.env.URL_THE_BULLY_IN_CHARGE
 const ONE_PIECE_URL = process.env.URL_ONE_PIECE
@@ -171,8 +171,7 @@ if (SCRAP_ON_START) {
 
 const cleanup = async () => {
   try {
-    deleteOldScrapes('the-bully-in-charge')
-    deleteOldScrapes('one-piece')
+    deleteAllOldScrapes()
   } catch (err) {
     console.error('[cleanup] Error:', err.message)
   }
