@@ -9,15 +9,11 @@ const tables = {
 
 export async function saveScrape(source, data) {
   const table = tables[source];
-  const existing = await db.select().from(table).where(eq(table.chapter, data.chapter)).get();
-  if (existing) return existing.id;
   const result = await db.insert(table).values(data).run();
   return Number(result.lastInsertRowid);
 }
 
 export async function saveEpisodeWithFiles(episode, files) {
-  const existing = await db.select().from(one_piece).where(eq(one_piece.episode, episode.episode)).get();
-  if (existing) return existing.id;
   return await db.transaction(async (tx) => {
     const result = await tx.insert(one_piece).values(episode).run();
     const episodeId = Number(result.lastInsertRowid);
