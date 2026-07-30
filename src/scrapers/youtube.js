@@ -26,32 +26,27 @@ export async function scrapeLatestVideo(channel, handle) {
 
 async function parseFromScript(page) {
   return await page.evaluate(() => {
-    const regex = /window\s*\[\s*["']ytInitialData["']\s*\]\s*=\s*({.+?});/s
-    for (const script of document.querySelectorAll('script')) {
-      const m = script.text.match(regex)
-      if (!m) continue
-      try {
-        const ytData = JSON.parse(m[1])
-        const tabs = ytData?.contents?.twoColumnBrowseResultsRenderer?.tabs
-        if (!tabs) continue
-        const videosTab = tabs.find(t => t.tabRenderer?.title === 'Videos')
-        const contents = videosTab?.tabRenderer?.content?.richGridRenderer?.contents
-        if (!contents) continue
-        const first = contents.find(c => c.richItemRenderer?.content?.lockupViewModel)
-        if (!first) continue
-        const v = first.richItemRenderer.content.lockupViewModel
-        const meta = v?.metadata?.lockupMetadataViewModel
-        const rows = meta?.metadata?.contentMetadataViewModel?.metadataRows?.[0]?.metadataParts
-        return {
-          title: meta?.title?.content || '',
-          video_id: v.contentId || '',
-          url: `https://www.youtube.com/watch?v=${v.contentId || ''}`,
-          views: rows?.[0]?.text?.content || '',
-          published_at: rows?.[1]?.text?.content || '',
-        }
-      } catch {}
-    }
-    return null
+    try {
+      const ytData = window.ytInitialData
+      if (!ytData) return null
+      const tabs = ytData?.contents?.twoColumnBrowseResultsRenderer?.tabs
+      if (!tabs) return null
+      const videosTab = tabs.find(t => t.tabRenderer?.title === 'Videos')
+      const contents = videosTab?.tabRenderer?.content?.richGridRenderer?.contents
+      if (!contents) return null
+      const first = contents.find(c => c.richItemRenderer?.content?.lockupViewModel)
+      if (!first) return null
+      const v = first.richItemRenderer.content.lockupViewModel
+      const meta = v?.metadata?.lockupMetadataViewModel
+      const rows = meta?.metadata?.contentMetadataViewModel?.metadataRows?.[0]?.metadataParts
+      return {
+        title: meta?.title?.content || '',
+        video_id: v.contentId || '',
+        url: `https://www.youtube.com/watch?v=${v.contentId || ''}`,
+        views: rows?.[0]?.text?.content || '',
+        published_at: rows?.[1]?.text?.content || '',
+      }
+    } catch { return null }
   })
 }
 
