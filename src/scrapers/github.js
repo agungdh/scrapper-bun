@@ -14,7 +14,8 @@ export async function scrapeLatestGithubTag(sourceName, owner, repo) {
       const commitLink = el.querySelector('a[href*="/commit/"]')
       const time = el.querySelector('relative-time')
       const hash = commitLink ? commitLink.href.split('/commit/')[1] || '' : ''
-      const date = time ? time.getAttribute('datetime') || '' : ''
+      const raw = time ? time.getAttribute('datetime') || '' : ''
+      const date = raw ? new Date(raw).toISOString() : ''
       return {
         tag_name: tag ? tag.textContent.trim() : '',
         hash,
