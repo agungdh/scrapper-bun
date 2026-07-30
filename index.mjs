@@ -1,9 +1,10 @@
 import { Hono } from 'hono'
 import { chromium } from 'playwright'
-import { saveScrape, getLatestScrape } from './db/scrape.js'
+import { saveScrape, getLatestScrape, deleteOldScrapes } from './db/scrape.js'
 
 const MANGA_URL = process.env.URL_THE_BULLY_IN_CHARGE
 const INTERVAL_MINUTES = parseInt(process.env.INTERVAL_MINUTES || '10', 10)
+const CLEANUP_INTERVAL_MINUTES = parseInt(process.env.CLEANUP_INTERVAL_MINUTES || '60', 10)
 const SCRAP_ON_START = process.env.SCRAP_ON_START === 'true'
 
 async function scrapeLatestChapter() {
@@ -72,7 +73,8 @@ const PORT = parseInt(process.env.PORT || '3000', 10)
 Bun.serve({ fetch: app.fetch, port: PORT })
 
 console.log(`API server running on http://localhost:${PORT}`)
-console.log(`Scraping every ${INTERVAL_MINUTES} minutes...\n`)
+console.log(`Scraping every ${INTERVAL_MINUTES} minutes...`)
+console.log(`Cleanup old data every ${CLEANUP_INTERVAL_MINUTES} minutes...\n`)
 
 const run = async () => {
   try {
@@ -92,7 +94,20 @@ if (SCRAP_ON_START) {
   console.log(`First scrape in ${INTERVAL_MINUTES} minutes...`)
 }
 
+const cleanup = async () => {
+  try {
+    deleteOldScrapes('the-bully-in-charge')
+  } catch (err) {
+    console.error('[cleanup] Error:', err.message)
+  }
+}
+
+const cleanupInterval = setInterval(cleanup, CLEANUP_INTERVAL_MINUTES * 60 * 1000)
+
+cleanup()
+
 process.on('SIGINT', () => {
   clearInterval(interval)
+  clearInterval(cleanupInterval)
   process.exit(0)
 })
