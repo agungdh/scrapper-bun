@@ -64,6 +64,13 @@
       "when": 1785394603991,
       "tag": "0008_flat_alice",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1785394854933,
+      "tag": "0009_magical_rogue",
+      "breakpoints": true
     }
   ]
 }

@@ -26,6 +26,8 @@ export const github_tags = sqliteTable('github_tags', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   repo: text('repo').notNull(),
   tag_name: text('tag_name').notNull(),
+  hash: text('hash'),
+  date: text('date'),
   scraped_at: text('scraped_at').notNull(),
 }, (table) => ({
   repoIdx: index('idx_github_tags_repo').on(table.repo),
