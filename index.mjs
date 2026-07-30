@@ -20,9 +20,11 @@ async function scrapeLatestChapter() {
     await latestRow.waitFor({ state: 'visible', timeout: 10000 });
 
     const chapterText = await latestRow.locator('td.judulseries a span').textContent();
-    const chapterNum = chapterText?.replace('Chapter ', '').trim();
+    const chapterNum = parseInt(chapterText?.replace('Chapter ', '').trim(), 10);
 
-    const date = await latestRow.locator('td.tanggalseries').textContent();
+    const dateRaw = await latestRow.locator('td.tanggalseries').textContent();
+    const [day, month, year] = (dateRaw?.trim() || '').split('/');
+    const date = `${year}-${month}-${day}`;
 
     const { origin } = new URL(MANGA_URL);
     const href = await latestRow.locator('td.judulseries a').getAttribute('href');
@@ -30,7 +32,7 @@ async function scrapeLatestChapter() {
 
     const result = {
       chapter: chapterNum,
-      date: date?.trim(),
+      date,
       url: fullUrl,
       scraped_at: new Date().toISOString(),
     };

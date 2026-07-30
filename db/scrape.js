@@ -1,22 +1,18 @@
-import { eq, desc } from 'drizzle-orm';
-import { db } from './index.js';
-import { scrapes } from './schema.js';
+import sqlite from './index.js';
+
+function tableName(source) {
+  return source.replace(/[^a-zA-Z0-9_]/g, '_');
+}
 
 export function saveScrape(source, data) {
-  db.insert(scrapes).values({
-    source,
-    chapter: data.chapter,
-    date: data.date,
-    url: data.url,
-    scraped_at: data.scraped_at,
-  }).run();
+  const table = tableName(source);
+  sqlite.run(
+    `INSERT INTO ${table} (chapter, date, url, scraped_at) VALUES (?, ?, ?, ?)`,
+    [data.chapter, data.date, data.url, data.scraped_at]
+  );
 }
 
 export function getLatestScrape(source) {
-  return db.select()
-    .from(scrapes)
-    .where(eq(scrapes.source, source))
-    .orderBy(desc(scrapes.id))
-    .limit(1)
-    .get();
+  const table = tableName(source);
+  return sqlite.query(`SELECT * FROM ${table} ORDER BY id DESC LIMIT 1`).get();
 }
