@@ -1,6 +1,6 @@
 import { desc, eq, inArray, lt } from 'drizzle-orm';
 import { db } from './index.js';
-import { the_bully_in_charge, one_piece, one_piece_files, github_tags, youtube_videos } from './schema.js';
+import { the_bully_in_charge, one_piece, one_piece_files, github_tags, youtube_videos, ghost_in_the_cell } from './schema.js';
 
 const tables = {
   'the-bully-in-charge': the_bully_in_charge,
@@ -69,6 +69,15 @@ export async function getLatestYoutubeVideo(channel) {
     .limit(1).get() || null;
 }
 
+export async function saveGhostInTheCell(data) {
+  const result = await db.insert(ghost_in_the_cell).values(data).run();
+  return Number(result.lastInsertRowid);
+}
+
+export async function getLatestGhostInTheCell() {
+  return await db.select().from(ghost_in_the_cell).orderBy(desc(ghost_in_the_cell.id)).limit(1).get() || null;
+}
+
 export async function deleteAllOldScrapes() {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   let total = 0;
@@ -93,6 +102,9 @@ export async function deleteAllOldScrapes() {
 
   const ytResult = await db.delete(youtube_videos).where(lt(youtube_videos.scraped_at, cutoff)).run();
   total += ytResult.rowsAffected ?? 0;
+
+  const ghostResult = await db.delete(ghost_in_the_cell).where(lt(ghost_in_the_cell.scraped_at, cutoff)).run();
+  total += ghostResult.rowsAffected ?? 0;
 
   console.log(`[cleanup] deleted ${total} old rows`);
   return total;

@@ -11,3 +11,5 @@ export const GITHUB_BROWSER = process.env.GITHUB_BROWSER || 'lightpanda-io/brows
 
 export const YOUTUBE_BENNIX = process.env.YOUTUBE_BENNIX || 'Bennix'
 export const YOUTUBE_PZN = process.env.YOUTUBE_PZN || 'ProgrammerZamanNow'
+
+export const GHOST_IN_THE_CELL_URL = process.env.URL_GHOST_IN_THE_CELL

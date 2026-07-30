@@ -71,6 +71,13 @@
       "when": 1785394854933,
       "tag": "0009_magical_rogue",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1785395865618,
+      "tag": "0010_warm_ser_duncan",
+      "breakpoints": true
     }
   ]
 }

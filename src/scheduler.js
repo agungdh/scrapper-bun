@@ -1,8 +1,9 @@
-import { INTERVAL_MINUTES, CLEANUP_INTERVAL_MINUTES, SCRAP_ON_START, GITHUB_ADMINLTE, GITHUB_BROWSER, YOUTUBE_BENNIX, YOUTUBE_PZN } from './config.js'
+import { INTERVAL_MINUTES, CLEANUP_INTERVAL_MINUTES, SCRAP_ON_START, GITHUB_ADMINLTE, GITHUB_BROWSER, YOUTUBE_BENNIX, YOUTUBE_PZN, GHOST_IN_THE_CELL_URL } from './config.js'
 import { scrapeLatestChapter } from './scrapers/bully.js'
 import { scrapeLatestOnePiece } from './scrapers/onepiece.js'
 import { scrapeLatestGithubTag } from './scrapers/github.js'
 import { scrapeLatestVideo } from './scrapers/youtube.js'
+import { scrapeMovie } from './scrapers/movie.js'
 import { deleteAllOldScrapes } from './db/queries.js'
 import { closeBrowser } from './scrapers/browser.js'
 
@@ -59,12 +60,24 @@ async function runGithubTags() {
   }))
 }
 
+async function runGhost() {
+  if (!GHOST_IN_THE_CELL_URL) return
+  try {
+    await scrapeMovie(GHOST_IN_THE_CELL_URL)
+    console.log('---')
+  } catch (err) {
+    console.error('[ghost] Error:', err.message)
+    console.log('---')
+  }
+}
+
 async function runAll() {
   await Promise.all([
     runManga(),
     runAnime(),
     runGithubTags(),
     runYoutube(),
+    runGhost(),
   ])
 }
 

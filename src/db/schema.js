@@ -47,6 +47,16 @@ export const youtube_videos = sqliteTable('youtube_videos', {
   channelIdx: index('idx_youtube_videos_channel').on(table.channel),
 }));
 
+const defineMovieTable = (name) => sqliteTable(name, {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  quality: text('quality').notNull(),
+  title: text('title').notNull(),
+  url: text('url').notNull(),
+  scraped_at: text('scraped_at').notNull(),
+});
+
+export const ghost_in_the_cell = defineMovieTable('ghost_in_the_cell');
+
 export const one_piece_files = sqliteTable('one_piece_files', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   episode_id: integer('episode_id').notNull().references(() => one_piece.id),
