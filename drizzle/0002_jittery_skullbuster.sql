@@ -1,0 +1,1 @@
+ALTER TABLE `one_piece` ADD `files` text;

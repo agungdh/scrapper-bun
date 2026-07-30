@@ -17,6 +17,7 @@ const defineAnimeTable = (name) => sqliteTable(name, {
   date: text('date').notNull(),
   url: text('url').notNull(),
   download_url: text('download_url').notNull(),
+  files: text('files'),
   scraped_at: text('scraped_at').notNull(),
 });
 

@@ -81,12 +81,33 @@ async function scrapeLatestOnePiece() {
     const datePublished = await page.locator('meta[property="article:published_time"]').getAttribute('content')
     const date = datePublished ? datePublished.split('T')[0] : new Date().toISOString().split('T')[0]
 
+    // scrape gofile
+    let files = []
+    const gofileId = downloadUrl?.match(/gofile\.io\/d\/(\w+)/)?.[1]
+    if (gofileId) {
+      const apiPromise = page.waitForResponse(r => r.url().startsWith('https://api.gofile.io/contents/') && r.status() === 200)
+      await page.goto(downloadUrl, { waitUntil: 'networkidle', timeout: 30000 })
+      const apiRes = await apiPromise
+      const apiJson = await apiRes.json()
+      if (apiJson.status === 'ok' && apiJson.data?.children) {
+        files = Object.values(apiJson.data.children).map(f => ({
+          id: f.id,
+          name: f.name,
+          size: f.size,
+          link: f.link,
+          mimetype: f.mimetype,
+          thumbnail: f.thumbnail,
+        }))
+      }
+    }
+
     const result = {
       episode: episodeNum,
       title: title?.trim() || '',
       date,
       url: episodeUrl,
       download_url: downloadUrl || '',
+      files: files.length > 0 ? JSON.stringify(files) : null,
       scraped_at: new Date().toISOString(),
     }
 
