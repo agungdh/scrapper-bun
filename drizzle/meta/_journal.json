@@ -29,6 +29,13 @@
       "when": 1785386159191,
       "tag": "0003_late_puppet_master",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1785387137079,
+      "tag": "0004_perpetual_doorman",
+      "breakpoints": true
     }
   ]
 }

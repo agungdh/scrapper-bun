@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
 
 const defineTable = (name) => sqliteTable(name, {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -24,11 +24,13 @@ export const one_piece = defineAnimeTable('one_piece');
 
 export const one_piece_files = sqliteTable('one_piece_files', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  episode_id: integer('episode_id').notNull(),
+  episode_id: integer('episode_id').notNull().references(() => one_piece.id),
   file_id: text('file_id').notNull(),
   name: text('name').notNull(),
   size: integer('size').notNull(),
   link: text('link').notNull(),
   mimetype: text('mimetype'),
   thumbnail: text('thumbnail'),
-});
+}, (table) => ({
+  episodeIdx: index('idx_one_piece_files_episode_id').on(table.episode_id),
+}));
