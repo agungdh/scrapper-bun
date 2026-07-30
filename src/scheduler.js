@@ -1,7 +1,8 @@
-import { INTERVAL_MINUTES, CLEANUP_INTERVAL_MINUTES, SCRAP_ON_START, GITHUB_ADMINLTE, GITHUB_BROWSER } from './config.js'
+import { INTERVAL_MINUTES, CLEANUP_INTERVAL_MINUTES, SCRAP_ON_START, GITHUB_ADMINLTE, GITHUB_BROWSER, YOUTUBE_BENNIX, YOUTUBE_PZN } from './config.js'
 import { scrapeLatestChapter } from './scrapers/bully.js'
 import { scrapeLatestOnePiece } from './scrapers/onepiece.js'
 import { scrapeLatestGithubTag } from './scrapers/github.js'
+import { scrapeLatestVideo } from './scrapers/youtube.js'
 import { deleteAllOldScrapes } from './db/queries.js'
 import { closeBrowser } from './scrapers/browser.js'
 
@@ -22,6 +23,22 @@ async function runAnime() {
   } catch (err) {
     console.error('Error:', err.message)
     console.log('---')
+  }
+}
+
+async function runYoutube() {
+  const channels = [
+    { name: 'bennix', handle: YOUTUBE_BENNIX },
+    { name: 'programmerzamannow', handle: YOUTUBE_PZN },
+  ]
+  for (const { name, handle } of channels) {
+    try {
+      await scrapeLatestVideo(name, handle)
+      console.log('---')
+    } catch (err) {
+      console.error(`[${name}] Error:`, err.message)
+      console.log('---')
+    }
   }
 }
 
@@ -46,6 +63,7 @@ async function runAll() {
   await runManga()
   await runAnime()
   await runGithubTags()
+  await runYoutube()
 }
 
 async function cleanup() {

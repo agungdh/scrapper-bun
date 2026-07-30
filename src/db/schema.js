@@ -31,6 +31,19 @@ export const github_tags = sqliteTable('github_tags', {
   repoIdx: index('idx_github_tags_repo').on(table.repo),
 }));
 
+export const youtube_videos = sqliteTable('youtube_videos', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  channel: text('channel').notNull(),
+  video_id: text('video_id').notNull(),
+  title: text('title').notNull(),
+  url: text('url').notNull(),
+  published_at: text('published_at'),
+  views: text('views'),
+  scraped_at: text('scraped_at').notNull(),
+}, (table) => ({
+  channelIdx: index('idx_youtube_videos_channel').on(table.channel),
+}));
+
 export const one_piece_files = sqliteTable('one_piece_files', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   episode_id: integer('episode_id').notNull().references(() => one_piece.id),

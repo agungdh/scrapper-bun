@@ -8,3 +8,6 @@ export const PORT = parseInt(process.env.PORT || '3000', 10)
 
 export const GITHUB_ADMINLTE = process.env.GITHUB_ADMINLTE || 'colorlibhq/adminlte'
 export const GITHUB_BROWSER = process.env.GITHUB_BROWSER || 'lightpanda-io/browser'
+
+export const YOUTUBE_BENNIX = process.env.YOUTUBE_BENNIX || 'Bennix'
+export const YOUTUBE_PZN = process.env.YOUTUBE_PZN || 'ProgrammerZamanNow'

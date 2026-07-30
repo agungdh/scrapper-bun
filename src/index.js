@@ -1,4 +1,4 @@
-import { MANGA_URL, ONE_PIECE_URL, GITHUB_ADMINLTE, GITHUB_BROWSER, PORT, INTERVAL_MINUTES, CLEANUP_INTERVAL_MINUTES } from './config.js'
+import { MANGA_URL, ONE_PIECE_URL, GITHUB_ADMINLTE, GITHUB_BROWSER, YOUTUBE_BENNIX, YOUTUBE_PZN, PORT, INTERVAL_MINUTES, CLEANUP_INTERVAL_MINUTES } from './config.js'
 import app from './server.js'
 import { startScheduler } from './scheduler.js'
 
@@ -19,6 +19,16 @@ if (!GITHUB_ADMINLTE) {
 
 if (!GITHUB_BROWSER) {
   console.error('GITHUB_BROWSER not set in .env')
+  process.exit(1)
+}
+
+if (!YOUTUBE_BENNIX) {
+  console.error('YOUTUBE_BENNIX not set in .env')
+  process.exit(1)
+}
+
+if (!YOUTUBE_PZN) {
+  console.error('YOUTUBE_PZN not set in .env')
   process.exit(1)
 }
 
