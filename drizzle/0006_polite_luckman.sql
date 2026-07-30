@@ -1,0 +1,1 @@
+CREATE INDEX `idx_github_tags_repo` ON `github_tags` (`repo`);

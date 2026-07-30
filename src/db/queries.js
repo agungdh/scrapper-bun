@@ -1,6 +1,6 @@
 import { desc, eq, inArray, lt } from 'drizzle-orm';
 import { db } from './index.js';
-import { the_bully_in_charge, one_piece, one_piece_files } from './schema.js';
+import { the_bully_in_charge, one_piece, one_piece_files, github_tags } from './schema.js';
 
 const tables = {
   'the-bully-in-charge': the_bully_in_charge,
@@ -45,6 +45,18 @@ export async function getLatestOnePieceWithFiles() {
   return { ...episode, files };
 }
 
+export async function saveGithubTag(data) {
+  const result = await db.insert(github_tags).values(data).run();
+  return Number(result.lastInsertRowid);
+}
+
+export async function getLatestGithubTag(repo) {
+  return await db.select().from(github_tags)
+    .where(eq(github_tags.repo, repo))
+    .orderBy(desc(github_tags.id))
+    .limit(1).get() || null;
+}
+
 export async function deleteAllOldScrapes() {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   let total = 0;
@@ -63,6 +75,9 @@ export async function deleteAllOldScrapes() {
     const result = await db.delete(table).where(lt(table.scraped_at, cutoff)).run();
     total += result.rowsAffected ?? 0;
   }
+
+  const ghResult = await db.delete(github_tags).where(lt(github_tags.scraped_at, cutoff)).run();
+  total += ghResult.rowsAffected ?? 0;
 
   console.log(`[cleanup] deleted ${total} old rows`);
   return total;

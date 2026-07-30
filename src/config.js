@@ -5,3 +5,6 @@ export const INTERVAL_MINUTES = parseInt(process.env.INTERVAL_MINUTES || '10', 1
 export const CLEANUP_INTERVAL_MINUTES = parseInt(process.env.CLEANUP_INTERVAL_MINUTES || '60', 10)
 export const SCRAP_ON_START = process.env.SCRAP_ON_START === 'true'
 export const PORT = parseInt(process.env.PORT || '3000', 10)
+
+export const GITHUB_ADMINLTE = process.env.GITHUB_ADMINLTE || 'colorlibhq/adminlte'
+export const GITHUB_BROWSER = process.env.GITHUB_BROWSER || 'lightpanda-io/browser'
