@@ -2,9 +2,9 @@
   "name": "scrapper-bun",
   "version": "1.0.0",
   "description": "",
-  "main": "index.mjs",
+  "main": "src/index.mjs",
   "scripts": {
-    "start": "bun run index.mjs",
+    "start": "bun run src/index.mjs",
     "migrate": "bun run scripts/migrate.mjs"
   },
   "keywords": [],

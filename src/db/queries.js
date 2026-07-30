@@ -59,7 +59,6 @@ export async function deleteAllOldScrapes() {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   let total = 0;
 
-  // one_piece: transaction delete parent + child
   const oldIds = (await db.select({ id: one_piece.id }).from(one_piece).where(lt(one_piece.scraped_at, cutoff)).all()).map(r => r.id)
   if (oldIds.length) {
     await db.transaction(async (tx) => {
@@ -71,7 +70,6 @@ export async function deleteAllOldScrapes() {
     })
   }
 
-  // other tables
   for (const [name, table] of Object.entries(tables)) {
     if (table === one_piece) continue
     const result = await db.delete(table).where(lt(table.scraped_at, cutoff)).run();

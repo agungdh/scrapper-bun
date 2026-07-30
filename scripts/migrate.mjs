@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync } from 'fs';
 import { migrate } from 'drizzle-orm/libsql/migrator';
-import { client, db } from '../db/index.js';
+import { client, db } from '../src/db/index.js';
 import { join } from 'path';
 
 const dir = join(import.meta.dirname, '..', 'data');
