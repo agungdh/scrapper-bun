@@ -2,6 +2,7 @@
 .idea/
 .env
 /scrapper
+/data/
 
 # Playwright
 node_modules/

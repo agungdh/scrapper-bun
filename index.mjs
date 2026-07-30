@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { chromium } from 'playwright';
+import { saveScrape } from './db/scrape.js';
 
 const MANGA_URL = process.env.URL_THE_BULLY_IN_CHARGE;
 const INTERVAL_MINUTES = parseInt(process.env.INTERVAL_MINUTES || '10', 10);
@@ -35,6 +36,9 @@ async function scrapeLatestChapter() {
     };
 
     console.log(JSON.stringify(result));
+
+    saveScrape('the-bully-in-charge', result);
+
     return result;
   } finally {
     await browser.close();
