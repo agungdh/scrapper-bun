@@ -12,10 +12,18 @@ const sources = [
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
-app.get('/api/scrape', (c) => {
+app.get('/api/scrape', async (c) => {
+  const [bully, op, adminlte, browser] = await Promise.all([
+    getLatestScrape('the-bully-in-charge'),
+    getLatestOnePieceWithFiles(),
+    getLatestGithubTag('adminlte'),
+    getLatestGithubTag('browser'),
+  ])
   return c.json({
-    sources,
-    endpoints: sources.map(s => `/api/scrape/${s}`),
+    'the-bully-in-charge': bully || null,
+    'one-piece': op || null,
+    adminlte: adminlte || null,
+    browser: browser || null,
   })
 })
 

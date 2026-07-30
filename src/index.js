@@ -27,7 +27,6 @@ const server = Bun.serve({ fetch: app.fetch, port: PORT })
 console.log(`API server running on http://localhost:${PORT}`)
 console.log(`Scraping every ${INTERVAL_MINUTES} minutes...`)
 console.log(`Cleanup old data every ${CLEANUP_INTERVAL_MINUTES} minutes...`)
-console.log(`GitHub tags: adminlte (${GITHUB_ADMINLTE}), browser (${GITHUB_BROWSER})\n`)
 
 startScheduler()
 
