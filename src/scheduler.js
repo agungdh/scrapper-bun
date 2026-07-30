@@ -31,7 +31,7 @@ async function runYoutube() {
     { name: 'bennix', handle: YOUTUBE_BENNIX },
     { name: 'programmerzamannow', handle: YOUTUBE_PZN },
   ]
-  for (const { name, handle } of channels) {
+  await Promise.all(channels.map(async ({ name, handle }) => {
     try {
       await scrapeLatestVideo(name, handle)
       console.log('---')
@@ -39,7 +39,7 @@ async function runYoutube() {
       console.error(`[${name}] Error:`, err.message)
       console.log('---')
     }
-  }
+  }))
 }
 
 async function runGithubTags() {
@@ -47,7 +47,7 @@ async function runGithubTags() {
     { name: 'adminlte', full: GITHUB_ADMINLTE },
     { name: 'browser', full: GITHUB_BROWSER },
   ]
-  for (const { name, full } of repos) {
+  await Promise.all(repos.map(async ({ name, full }) => {
     try {
       const [owner, repo] = full.split('/')
       await scrapeLatestGithubTag(name, owner, repo)
@@ -56,14 +56,16 @@ async function runGithubTags() {
       console.error(`[${name}] Error:`, err.message)
       console.log('---')
     }
-  }
+  }))
 }
 
 async function runAll() {
-  await runManga()
-  await runAnime()
-  await runGithubTags()
-  await runYoutube()
+  await Promise.all([
+    runManga(),
+    runAnime(),
+    runGithubTags(),
+    runYoutube(),
+  ])
 }
 
 async function cleanup() {
@@ -75,19 +77,23 @@ async function cleanup() {
 }
 
 export function startScheduler() {
-  const mainInterval = setInterval(runAll, INTERVAL_MINUTES * 60 * 1000)
   const cleanupInterval = setInterval(cleanup, CLEANUP_INTERVAL_MINUTES * 60 * 1000)
+
+  async function scheduleNext() {
+    await runAll()
+    setTimeout(scheduleNext, INTERVAL_MINUTES * 60 * 1000)
+  }
 
   cleanup()
 
   if (SCRAP_ON_START) {
-    runAll()
+    scheduleNext()
   } else {
+    setTimeout(scheduleNext, INTERVAL_MINUTES * 60 * 1000)
     console.log(`First scrape in ${INTERVAL_MINUTES} minutes...`)
   }
 
   process.on('SIGINT', async () => {
-    clearInterval(mainInterval)
     clearInterval(cleanupInterval)
     await closeBrowser()
     process.exit(0)
