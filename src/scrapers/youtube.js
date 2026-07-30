@@ -6,25 +6,15 @@ export async function scrapeLatestVideo(channel, handle) {
   const url = `https://www.youtube.com/@${handle}/videos`
 
   try {
-    await page.goto(url, { waitUntil: 'networkidle' })
-    await page.waitForSelector('ytd-rich-item-renderer a#video-title-link', { timeout: 15000 })
+    await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 })
+    await page.waitForSelector('#page-manager', { timeout: 20000 })
 
-    const data = await page.$eval('ytd-rich-item-renderer', (el) => {
-      const link = el.querySelector('a#video-title-link')
-      const title = link ? link.textContent.trim() : ''
-      const href = link ? link.href : ''
-      const videoId = href ? new URL(href).searchParams.get('v') : ''
-      const spans = el.querySelectorAll('#metadata-line span')
-      const views = spans[0] ? spans[0].textContent.trim() : ''
-      const publishedAt = spans[1] ? spans[1].textContent.trim() : ''
-      return { title, video_id: videoId, url: href, views, published_at: publishedAt }
-    })
+    let data = await parseFromScript(page)
+    if (!data) data = await parseFromDom(page)
 
-    const result = {
-      channel,
-      ...data,
-      scraped_at: new Date().toISOString(),
-    }
+    if (!data || !data.video_id) throw new Error('No video found')
+
+    const result = { channel, ...data, scraped_at: new Date().toISOString() }
 
     await saveYoutubeVideo(result)
     console.log(JSON.stringify(result))
@@ -32,4 +22,43 @@ export async function scrapeLatestVideo(channel, handle) {
   } finally {
     await context.close()
   }
+}
+
+async function parseFromScript(page) {
+  return await page.evaluate(() => {
+    const regex = /window\s*\[\s*["']ytInitialData["']\s*\]\s*=\s*({.+?});/s
+    for (const script of document.querySelectorAll('script')) {
+      const m = script.text.match(regex)
+      if (!m) continue
+      try {
+        const ytData = JSON.parse(m[1])
+        const tabs = ytData?.contents?.twoColumnBrowseResultsRenderer?.tabs
+        if (!tabs) continue
+        const videosTab = tabs.find(t => t.tabRenderer?.title === 'Videos')
+        const contents = videosTab?.tabRenderer?.content?.richGridRenderer?.contents
+        if (!contents) continue
+        const first = contents.find(c => c.richItemRenderer?.content?.videoRenderer)
+        if (!first) continue
+        const v = first.richItemRenderer.content.videoRenderer
+        return {
+          title: v.title?.runs?.[0]?.text || '',
+          video_id: v.videoId || '',
+          url: `https://www.youtube.com/watch?v=${v.videoId || ''}`,
+          views: v.viewCountText?.simpleText || v.viewCountText?.runs?.[0]?.text || '',
+          published_at: v.publishedTimeText?.simpleText || '',
+        }
+      } catch {}
+    }
+    return null
+  })
+}
+
+async function parseFromDom(page) {
+  const link = page.locator('#video-title-link').first()
+  if (!(await link.count())) return null
+  const href = await link.getAttribute('href')
+  if (!href) return null
+  const videoId = new URL(href, 'https://www.youtube.com').searchParams.get('v')
+  const title = (await link.getAttribute('title')) || (await link.textContent()) || ''
+  return { title, video_id: videoId || '', url: `https://www.youtube.com/watch?v=${videoId}`, views: '', published_at: '' }
 }
