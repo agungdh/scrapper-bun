@@ -1,7 +1,13 @@
-import { migrate } from 'drizzle-orm/bun-sqlite/migrator';
-import { db } from '../db/index.js';
+import { existsSync, mkdirSync } from 'fs';
+import { migrate } from 'drizzle-orm/libsql/migrator';
+import { client, db } from '../db/index.js';
 import { join } from 'path';
 
+const dir = join(import.meta.dirname, '..', 'data');
+if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+
+client.execute('PRAGMA journal_mode = WAL');
+client.execute('PRAGMA synchronous = NORMAL');
 await migrate(db, { migrationsFolder: join(import.meta.dirname, '..', 'drizzle') });
 
 console.log('Migrations done.');
