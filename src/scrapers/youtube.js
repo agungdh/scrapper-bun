@@ -37,15 +37,17 @@ async function parseFromScript(page) {
         const videosTab = tabs.find(t => t.tabRenderer?.title === 'Videos')
         const contents = videosTab?.tabRenderer?.content?.richGridRenderer?.contents
         if (!contents) continue
-        const first = contents.find(c => c.richItemRenderer?.content?.videoRenderer)
+        const first = contents.find(c => c.richItemRenderer?.content?.lockupViewModel)
         if (!first) continue
-        const v = first.richItemRenderer.content.videoRenderer
+        const v = first.richItemRenderer.content.lockupViewModel
+        const meta = v?.metadata?.lockupMetadataViewModel
+        const rows = meta?.metadata?.contentMetadataViewModel?.metadataRows?.[0]?.metadataParts
         return {
-          title: v.title?.runs?.[0]?.text || '',
-          video_id: v.videoId || '',
-          url: `https://www.youtube.com/watch?v=${v.videoId || ''}`,
-          views: v.viewCountText?.simpleText || v.viewCountText?.runs?.[0]?.text || '',
-          published_at: v.publishedTimeText?.simpleText || '',
+          title: meta?.title?.content || '',
+          video_id: v.contentId || '',
+          url: `https://www.youtube.com/watch?v=${v.contentId || ''}`,
+          views: rows?.[0]?.text?.content || '',
+          published_at: rows?.[1]?.text?.content || '',
         }
       } catch {}
     }
@@ -54,7 +56,7 @@ async function parseFromScript(page) {
 }
 
 async function parseFromDom(page) {
-  const link = page.locator('#video-title-link').first()
+  const link = page.locator('a[href*="/watch?v="]').first()
   if (!(await link.count())) return null
   const href = await link.getAttribute('href')
   if (!href) return null
