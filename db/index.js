@@ -14,4 +14,3 @@ const sqlite = new Database(DB_PATH);
 sqlite.exec('PRAGMA journal_mode = WAL');
 
 export const db = drizzle(sqlite);
-export default sqlite;
