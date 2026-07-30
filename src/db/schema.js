@@ -37,6 +37,7 @@ export const youtube_videos = sqliteTable('youtube_videos', {
   video_id: text('video_id').notNull(),
   title: text('title').notNull(),
   url: text('url').notNull(),
+  duration: text('duration'),
   published_at: text('published_at'),
   views: text('views'),
   scraped_at: text('scraped_at').notNull(),

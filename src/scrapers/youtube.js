@@ -39,10 +39,12 @@ async function parseFromScript(page) {
       const v = first.richItemRenderer.content.lockupViewModel
       const meta = v?.metadata?.lockupMetadataViewModel
       const rows = meta?.metadata?.contentMetadataViewModel?.metadataRows?.[0]?.metadataParts
+      const badge = v?.contentImage?.thumbnailViewModel?.overlays?.[0]?.thumbnailBottomOverlayViewModel?.badges?.[0]?.thumbnailBadgeViewModel
       return {
         title: meta?.title?.content || '',
         video_id: v.contentId || '',
         url: `https://www.youtube.com/watch?v=${v.contentId || ''}`,
+        duration: badge?.text || '',
         views: rows?.[0]?.text?.content || '',
         published_at: rows?.[1]?.text?.content || '',
       }
